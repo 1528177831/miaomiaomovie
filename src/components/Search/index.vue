@@ -3,28 +3,17 @@
     <div class="search_input">
       <div class="search_input_wrapper">
         <i class="iconfont icon-sousuo"></i>
-        <input type="text">
+        <input type="text" v-model="message">
       </div>
     </div>
     <div class="search_result">
       <h3>电影/电视剧/综艺</h3>
       <ul>
-        <li>
-          <div class="img"><img src="/images/movie_1.jpg"></div>
+        <li v-for="item in movieList" :key="item.filmId">
+          <div class="img"><img :src="item.poster"></div>
           <div class="info">
-            <p><span>无名之辈</span><span>8.5</span></p>
-            <p>A Cool Fish</p>
-            <p>剧情,喜剧,犯罪</p>
-            <p>2018-11-16</p>
-          </div>
-        </li>
-        <li>
-          <div class="img"><img src="/images/movie_1.jpg"></div>
-          <div class="info">
-            <p><span>无名之辈</span><span>8.5</span></p>
-            <p>A Cool Fish</p>
-            <p>剧情,喜剧,犯罪</p>
-            <p>2018-11-16</p>
+            <p><span>{{item.name}}</span><span>{{item.grade ? item.grade : "暂无"}}</span></p>
+            <p>{{item.category}}</p>
           </div>
         </li>
       </ul>
@@ -33,8 +22,62 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
-
+  name: 'Search',
+  data () {
+    return {
+      message: '',
+      movieList: []
+    }
+  },
+  watch: {
+    message (newValue) {
+      const that = this
+      // 取消上一次请求
+      this.cancelRequest()
+      this.$http({
+        url: '/api',
+        headers: {
+          'X-Host': 'mall.film-ticket.film.list'
+        },
+        params: {
+          cityId: 210300,
+          pageNum: 1,
+          pageSize: 10,
+          type: 1
+        },
+        // 必须对请求进行cancelToken设置
+        cancelToken: new axios.CancelToken(function (c) {
+          that.source = c
+        })
+      }).then(res => {
+        // 在这里处理得到的数据
+        // 数据逻辑处理
+        var film = res.data.data.films.filter(item => {
+          if (newValue !== '') {
+            return item.name.includes(newValue)
+          }
+        })
+        this.movieList = film
+      }).catch(function (thrown) {
+        // 如果请求被取消则进入该方法判断
+        if (axios.isCancel(thrown)) {
+          console.log('Request canceled', thrown.message)
+        } else {
+          // handle error
+          console.log(thrown)
+        }
+      })
+    }
+  },
+  methods: {
+    cancelRequest () {
+      if (typeof this.source === 'function') {
+        this.source('终止请求')
+      }
+    }
+  }
 }
 </script>
 

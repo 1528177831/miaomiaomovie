@@ -1,97 +1,13 @@
 <template>
   <div class="movie_body">
 				<ul>
-					<li>
-						<div class="pic_show"><img src="/images/movie_1.jpg"></div>
+					<li v-for="item in movieList" :key="item.filmId">
+						<div class="pic_show"><img :src="item.poster"></div>
 						<div class="info_list">
-							<h2>无名之辈</h2>
-							<p><span class="person">17746</span> 人想看</p>
-							<p>主演: 陈建斌,任素汐,潘斌龙</p>
-							<p>2018-11-30上映</p>
-						</div>
-						<div class="btn_pre">
-							预售
-						</div>
-					</li>
-					<li>
-						<div class="pic_show"><img src="/images/movie_2.jpg"></div>
-						<div class="info_list">
-							<h2>毒液：致命守护者</h2>
-							<p><span class="person">2346</span> 人想看</p>
-							<p>主演: 汤姆·哈迪,米歇尔·威廉姆斯,里兹·阿迈德</p>
-							<p>2018-11-30上映</p>
-						</div>
-						<div class="btn_pre">
-							预售
-						</div>
-					</li>
-					<li>
-						<div class="pic_show"><img src="/images/movie_1.jpg"></div>
-						<div class="info_list">
-							<h2>无名之辈</h2>
-							<p><span class="person">17746</span> 人想看</p>
-							<p>主演: 陈建斌,任素汐,潘斌龙</p>
-							<p>2018-11-30上映</p>
-						</div>
-						<div class="btn_pre">
-							预售
-						</div>
-					</li>
-					<li>
-						<div class="pic_show"><img src="/images/movie_2.jpg"></div>
-						<div class="info_list">
-							<h2>毒液：致命守护者</h2>
-							<p><span class="person">2346</span> 人想看</p>
-							<p>主演: 汤姆·哈迪,米歇尔·威廉姆斯,里兹·阿迈德</p>
-							<p>2018-11-30上映</p>
-						</div>
-						<div class="btn_pre">
-							预售
-						</div>
-					</li>
-					<li>
-						<div class="pic_show"><img src="/images/movie_1.jpg"></div>
-						<div class="info_list">
-							<h2>无名之辈</h2>
-							<p><span class="person">17746</span> 人想看</p>
-							<p>主演: 陈建斌,任素汐,潘斌龙</p>
-							<p>2018-11-30上映</p>
-						</div>
-						<div class="btn_pre">
-							预售
-						</div>
-					</li>
-					<li>
-						<div class="pic_show"><img src="/images/movie_2.jpg"></div>
-						<div class="info_list">
-							<h2>毒液：致命守护者</h2>
-							<p><span class="person">2346</span> 人想看</p>
-							<p>主演: 汤姆·哈迪,米歇尔·威廉姆斯,里兹·阿迈德</p>
-							<p>2018-11-30上映</p>
-						</div>
-						<div class="btn_pre">
-							预售
-						</div>
-					</li>
-					<li>
-						<div class="pic_show"><img src="/images/movie_1.jpg"></div>
-						<div class="info_list">
-							<h2>无名之辈</h2>
-							<p><span class="person">17746</span> 人想看</p>
-							<p>主演: 陈建斌,任素汐,潘斌龙</p>
-							<p>2018-11-30上映</p>
-						</div>
-						<div class="btn_pre">
-							预售
-						</div>
-					</li>
-					<li>
-						<div class="pic_show"><img src="/images/movie_2.jpg"></div>
-						<div class="info_list">
-							<h2>毒液：致命守护者</h2>
-							<p><span class="person">2346</span> 人想看</p>
-							<p>主演: 汤姆·哈迪,米歇尔·威廉姆斯,里兹·阿迈德</p>
-							<p>2018-11-30上映</p>
+							<h2><span class="name">{{item.name}}</span><span class="item">{{item.item.name}}</span></h2>
+							<p></p>
+							<p>主演: <span v-for="(actor,index) in item.actors" :key="index">{{actor.name}} </span></p>
+							<p>{{item.premiereAt}}上映</p>
 						</div>
 						<div class="btn_pre">
 							预售
@@ -102,9 +18,36 @@
 </template>
 
 <script>
+import moment from 'moment'
 export default {
-  name: 'CommingSoon'
-
+  name: 'CommingSoon',
+  data () {
+    return {
+      movieList: []
+    }
+  },
+  mounted () {
+    this.$http({
+      url: '/api',
+      headers: {
+        'X-Host': 'mall.film-ticket.film.list'
+      },
+      params: {
+        cityId: 210300,
+        pageNum: 1,
+        pageSize: 10,
+        type: 2
+      }
+    }).then(res => {
+      if (res.data.msg === 'ok') {
+        const films = res.data.data.films.map((item, index, arr) => {
+          item.premiereAt = moment(item.premiereAt * 1000).format('YYYY-MM-DD')
+          return item
+        })
+        this.movieList = films
+      }
+    })
+  }
 }
 </script>
 
@@ -116,6 +59,27 @@ export default {
 .movie_body .pic_show img{ width:100%;}
 .movie_body .info_list { margin-left: 10px; flex:1; position: relative;}
 .movie_body .info_list h2{ font-size: 17px; line-height: 24px; width:150px; overflow: hidden; white-space: nowrap; text-overflow:ellipsis;}
+.movie_body .info_list h2 .name{
+  max-width: calc(100% - 25px);
+  color: #191a1b;
+  font-size: 16px;
+  height: 22px;
+  line-height: 22px;
+  margin-right: 5px;
+  overflow: hidden;
+  -o-text-overflow: ellipsis;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.movie_body .info_list h2 .item{
+  font-size: 9px;
+  color: #fff;
+  background-color: #d2d6dc;
+  height: 14px;
+  line-height: 14px;
+  padding: 0 2px;
+  border-radius: 2px;
+}
 .movie_body .info_list p{ font-size: 13px; color:#666; line-height: 22px; width:200px; overflow: hidden; white-space: nowrap; text-overflow:ellipsis;}
 .movie_body .info_list .grade{ font-weight: 700; color: #faaf00; font-size: 15px;}
 .movie_body .info_list img{ width:50px; position: absolute; right:10px; top: 5px;}
